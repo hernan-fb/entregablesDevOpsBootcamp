@@ -11,6 +11,11 @@ pipeline {
                 git url: 'https://github.com/hernan-fb/testUseForJenkins', branch: 'main'  
             }  
         }  
+        stage('Clean Previous Installations') {  
+            steps {  
+                sh 'rm -rf node_modules package-lock.json || true'  
+            }  
+        }  
         stage('Install Dependencies') {  
             steps {  
                 sh 'npm install'  

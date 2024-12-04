@@ -56,7 +56,7 @@ Connections                   ttl     opn     rt1     rt5     p50     p90
                               0       0       0.00    0.00    0.00    0.00  
 ```
 ##### Instalación de NodeJs para las automatizaciones de Jenkins
-Como la automatización de jenkins se va a ejecutar en la instancia de multipass, se va a instalar un programa de node js y exponer el mismo en internet en un puerto determinado. Pero para compilar y ejecutar se requiere que esté instalado node js.
+Como la automatización de jenkins se va a ejecutar en la instancia de multipass, se va a instalar un programa de node js y exponer el mismo en internet en un puerto determinado. Hay varias formas de compilar el proyecto de nodejs desde jenkins, una de ellas sería mediante comandos bash y sh. En este caso para compilar y ejecutar se requiere que esté instalado node js en la instancia multipass. Aunque si se instala el plugin de nodejs desde jenkins esto no es necesario. No obstante los pasos a seguir son los siguientes:
 
 - Actualiza los paquetes de tu sistema:
 
@@ -80,7 +80,7 @@ Como la automatización de jenkins se va a ejecutar en la instancia de multipass
     node -v  
     npm -v  
 
-##### Instalar plugin `nvm` para `nodejs`
+##### Instalar plugin `nvm` para `nodejs` en Jenkins
 Siguiendo la misma explicación previa a la instalación de NodeJs, también se deben instalar los plugins de Node, debido a que Jenkins trabaja con plugins. Así como también es necesario instalar plugins para traer un repositorio de github, para utilizar un jenkins file, para utilizar Groovy, para comunicarse con slack, para mandar mails.
 
 Desde el sitio web oficial de la documentación de jenkins (https://plugins.jenkins.io/nodejs/) recomiendan tres alternativas para instalar dicho plugin de node:
@@ -110,8 +110,36 @@ En mi caso quedaría `https://super-refined-gelding.ngrok-free.app/github-webhoo
 1. Luego en la sección `Build Triggers` marcamos `GitHub hook trigger for GITScm polling`.
 1. En la sección Pipeline se selecciona `pipeline script` y se completa el script indicado en el readme del proyecto de nodejs con el que se va a trabajar.
 
-#### Entregable 1. Códigos Fuente Jenkins
+#### Primeras ejecuciones
+En la primera ejecución manual que el pipeline funcionó correctamente, ocurrió que en las siguientes ejecuciones incluyendo las ejecuciones automáticas fallaba.
+Se me ocurrió hacer un "clean" del proyecto antes de hacer un install y afortunadamente eso solucionó el problema que había:
 ```
+stage('Clean Previous Installations') {  
+    steps {  
+        sh 'rm -rf node_modules package-lock.json || true'  
+    }  
+}  
+```
+este es el pipe agregado para que funcione. A continuación en la siguiente sección se muestra el código fuente final.
+
+##### Posterior a últimas ejecuciones
+La instancia multipass empezó a tornarse lenta, y jenkins empezó a fallar. Tuve que cerrar la ejecución de ngrok y al volver a ejecutar aparecía el siguiente mensaje.
+
+```bash
+Microsoft Windows [Versión 10.0.19044.1889]
+(c) Microsoft Corporation. Todos los derechos reservados.
+
+C:\Windows\system32>multipass shell devopsbootcamp
+shell failed: [ssh client] channel creation failed: ''
+
+C:\Windows\system32>multipass stop devopsbootcamp
+Stopping devopsbootcamp /
+```
+
+Y se quedaba colgado/pensando en la última linea, por mucho tiempo. Con lo cual no pude copiar la prueba de ejecución automática, pero si la ejecución manual (que eran iguales, solamente diferían de que una decía en la primera línea que había sido ejecutada automáticamente por un push).
+
+#### Entregable 1. Códigos Fuente Jenkins
+```groovy
 pipeline {  
     agent any  
     
@@ -123,6 +151,11 @@ pipeline {
         stage('Clone Repository') {  
             steps {  
                 git url: 'https://github.com/hernan-fb/testUseForJenkins', branch: 'main'  
+            }  
+        }  
+        stage('Clean Previous Installations') {  
+            steps {  
+                sh 'rm -rf node_modules package-lock.json || true'  
             }  
         }  
         stage('Install Dependencies') {  
@@ -141,7 +174,6 @@ pipeline {
             }  
         }  
     }  
-    
     post {  
         success {  
             echo 'El proceso se ejecutó correctamente.'  
@@ -158,10 +190,144 @@ pipeline {
 
 #### Entregable 2. Guía de cómo utilizar el job
 
-##### Readme Creación de Usuarios
+##### Readme Ejecución automática CI a partir de un push
+A continuación puede verse una animación de un push y la ejecución automática y satisfactoria en jenkins (**solo visible desde archivos `.md`**)
+![Ejecucion Automática en GIF](pruebaDeEjecucionAutomaticaSatisfactoria.gif)
 
+Se adjunta guía de utilización del job en el formato indicado por el enunciado.
 
 #### Entregable 3. Evidencia de las pruebas con resultado exitoso
 
-##### Creación de Usuarios
+##### Ejecución CI
 
+```bash
+Started by user Hernán F.B.
+
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins
+ in /var/lib/jenkins/workspace/desafio02/nodejs_CI_job@2
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Declarative: Tool Install)
+[Pipeline] tool
+[Pipeline] envVarsForTool
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Clone Repository)
+[Pipeline] tool
+[Pipeline] envVarsForTool
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] git
+Selected Git installation does not exist. Using Default
+The recommended git tool is: NONE
+No credentials specified
+Cloning the remote Git repository
+Cloning repository https://github.com/hernan-fb/testUseForJenkins
+ > git init /var/lib/jenkins/workspace/desafio02/nodejs_CI_job@2 # timeout=10
+Fetching upstream changes from https://github.com/hernan-fb/testUseForJenkins
+ > git --version # timeout=10
+ > git --version # 'git version 2.43.0'
+ > git fetch --tags --force --progress -- https://github.com/hernan-fb/testUseForJenkins +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git config remote.origin.url https://github.com/hernan-fb/testUseForJenkins # timeout=10
+ > git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10
+Avoid second fetch
+ > git rev-parse refs/remotes/origin/main^{commit} # timeout=10
+Checking out Revision 0ae49ebed09faf348f6a6f2c6c93f69a617a298b (refs/remotes/origin/main)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 0ae49ebed09faf348f6a6f2c6c93f69a617a298b # timeout=10
+ > git branch -a -v --no-abbrev # timeout=10
+ > git checkout -b main 0ae49ebed09faf348f6a6f2c6c93f69a617a298b # timeout=10
+Commit message: "test for devopsbootcamp course"
+ > git rev-list --no-walk 0ae49ebed09faf348f6a6f2c6c93f69a617a298b # timeout=10
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Install Dependencies)
+[Pipeline] tool
+[Pipeline] envVarsForTool
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] sh
++ npm install
+(node:25102) ExperimentalWarning: CommonJS module /var/lib/jenkins/tools/jenkins.plugins.nodejs.tools.NodeJSInstallation/NodeJS/lib/node_modules/npm/node_modules/debug/src/node.js is loading ES Module /var/lib/jenkins/tools/jenkins.plugins.nodejs.tools.NodeJSInstallation/NodeJS/lib/node_modules/npm/node_modules/supports-color/index.js using require().
+Support for loading ES Module in require() is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+added 367 packages, and audited 368 packages in 42s
+
+45 packages are looking for funding
+  run `npm fund` for details
+
+9 vulnerabilities (3 low, 1 moderate, 5 high)
+
+To address all issues, run:
+  npm audit fix
+
+Run `npm audit` for details.
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Run Tests)
+[Pipeline] tool
+[Pipeline] envVarsForTool
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] sh
++ npm test
+
+> nodejs-helloworld-api@1.0.0 test
+> jest --forceExit
+
+  console.log
+    Server is listening on port 3000
+
+      at Server.log (index.js:10:13)
+
+PASS ./index.test.js
+  GET /
+    ✓ responds with hello world message in JSON format (84 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       1 passed, 1 total
+Snapshots:   0 total
+Time:        1.078 s
+Ran all test suites.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Start Server)
+[Pipeline] tool
+[Pipeline] envVarsForTool
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] sh
++ npm start
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Declarative: Post Actions)
+[Pipeline] echo
+El proceso se ejecutó correctamente.
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+Finished: SUCCESS
+```
