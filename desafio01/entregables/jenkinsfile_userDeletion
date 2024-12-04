@@ -1,0 +1,38 @@
+pipeline {  
+    agent any  
+    parameters {  
+        string(name: 'username', defaultValue: '', description: 'Ingresa el nombre de usuario a borrar (requerido)')  
+    }  
+    stages {  
+        stage('Validation') {  
+            steps {  
+                script {  
+                    if (!params.username) {  
+                        error "El nombre de usuario es un parámetro obligatorio."  
+                    }  
+
+                    userExists = sh(script: "cat /etc/passwd | grep -w ${params.username}", returnStatus: true) == 0  
+                    if (!userExists) {  
+                        error "El usuario '${params.username}' no existe en el sistema."  
+                    }
+                }  
+            }  
+        }  
+        stage('UserDeletion') {  
+            steps {  
+                script {  
+                    // Borra el usuario  
+                    sh "sudo userdel -r ${params.username}"  
+                    echo "El usuario '${params.username}' fue borrado exitosamente."  
+                    
+                    // Borra el grupo creado con el usuario  
+                    groupExists = sh(script: "cat /etc/group | grep -w ${env.LOGIN}", returnStatus: true) == 0  
+                    if (groupExists) {  
+                        sh "sudo groupdel ${params.username}"  
+                        echo "El grupo '${params.username}' fue borrado exitosamente."  
+                    }
+                }  
+            }  
+        }  
+    }  
+}

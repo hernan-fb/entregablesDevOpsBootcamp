@@ -1,0 +1,48 @@
+pipeline {  
+    agent any  
+    parameters {  
+        string(name: 'login', defaultValue: '', description: 'Ingresa un identificador único, por defecto es el nombre y apellido sin espacios (por defecto nombreapellido)')  
+        string(name: 'Nombre', defaultValue: '', description: 'Ingresa el Nombre del usuario a dar de alta (requerido)')  
+        string(name: 'Apellido', defaultValue: '', description: 'Ingresa el Apellido del usuario a dar de alta (requerido)')  
+        choice(name: 'Departamento', choices: ['Contabilidad', 'Finanzas', 'Tecnología'], description: 'Grupo que corresponde al área de trabajo del usuario en cuestión (requerido)')  
+    }  
+    environment {  
+        NOMBRE_EMPRESA = "FabricaDeBurletes"  
+        ANIO_EN_CURSO = "${new java.util.Date().format('yyyy')}"   
+        nombreSinEspacios = params.Nombre.replaceAll(" ", "")  
+        apellidoSinEspacios = params.Apellido.replaceAll(" ", "")  
+        LOGIN_AUTO = "${nombreSinEspacios}${apellidoSinEspacios}"
+        LOGIN = "${params.login ?: env.LOGIN_AUTO}" // Usa params.login si no está vacío, sino usa LOGIN_AUTO
+        LOGIN = LOGIN.toLowerCase()  
+        PASSWORD_GENERADO = "${nombreSinEspacios}-${apellidoSinEspacios}@${NOMBRE_EMPRESA}_${env.ANIO_EN_CURSO}"  
+    }  
+    stages {  
+        stage('Validation') {  
+            steps {  
+                script {  
+                    if (!params.Nombre || !params.Apellido || !params.Departamento) {  
+                        error "El Nombre, el Apellido y el departamento son parámetros obligatorios."  
+                    }  
+                    userExists = sh(script: "cat /etc/passwd | grep -w ${env.LOGIN}", returnStatus: true) == 0  
+                    if (userExists) {  
+                        error "El usuario '${params.username}' ya existe en el sistema. Pruebe con un login distinto."  
+                    }
+                }  
+            }  
+        }  
+        stage('UserSignUp') {  
+            steps {  
+                script {  
+                    sh """  
+                        sudo useradd ${env.LOGIN} -m -s /bin/bash -d /home/${env.LOGIN} -c "${params.Nombre} ${params.Apellido}" -p \$(echo "${env.PASSWORD_GENERADO}" | openssl passwd -1 -stdin)  
+                        sudo chage -d 0 ${env.LOGIN}  
+                    """  
+                    echo "El usuario ${env.LOGIN} fue creado exitosamente."  
+                    echo "El usuario ${env.LOGIN} tiene por contraseña inicial: ${env.PASSWORD_GENERADO}"  
+                    echo "La contraseña deberá ser cambiada luego de iniciar sesión por primera vez."  
+                    echo "Gracias por utilizar el sistema de creación de usuarios!"  
+                }  
+            }  
+        }  
+    }  
+}
