@@ -26,8 +26,7 @@ Debido a que en el último tiempo hay muchos ingresos algunos operadores cometie
 
 Los entregables establecidos para este proyecto con:
 1. Código fuente del pipeline de Jenkins publicado en un repositorio de Github.
-2. Guía detallada de cómo utilizar el job publicada en el archivo README.md del
-repositorio.
+2. Guía detallada de cómo utilizar el job publicada en el archivo README.md del repositorio.
 3. Evidencia de las pruebas con resultado exitoso.
 
 #### Entregable 0. Preparación del entorno
