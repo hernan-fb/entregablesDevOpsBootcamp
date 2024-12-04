@@ -1,0 +1,42 @@
+pipeline {  
+    agent any  
+    
+    tools {  
+        nodejs 'NodeJS'  
+    }  
+
+    stages {  
+        stage('Clone Repository') {  
+            steps {  
+                git url: 'https://github.com/hernan-fb/testUseForJenkins', branch: 'main'  
+            }  
+        }  
+        stage('Install Dependencies') {  
+            steps {  
+                sh 'npm install'  
+            }  
+        }  
+        stage('Run Tests') {  
+            steps {  
+                sh 'npm test'  
+            }  
+        }  
+        stage('Start Server') {  
+            steps {  
+                sh 'npm start &'  
+            }  
+        }  
+    }  
+    
+    post {  
+        success {  
+            echo 'El proceso se ejecutó correctamente.'  
+        }  
+        aborted {
+            echo "El proceso fue abortado correctamente"
+        }
+        failure {  
+            echo 'Hubo un error durante la ejecución del proceso'
+        }  
+    }  
+}
