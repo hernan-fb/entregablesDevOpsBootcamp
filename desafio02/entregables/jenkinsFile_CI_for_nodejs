@@ -28,7 +28,7 @@ pipeline {
         }  
         stage('Start Server') {  
             steps {  
-                sh 'npm start &'  
+                sh 'npm start'  
             }  
         }  
     }  

@@ -136,7 +136,7 @@ C:\Windows\system32>multipass stop devopsbootcamp
 Stopping devopsbootcamp /
 ```
 
-Y se quedaba colgado/pensando en la última linea, por mucho tiempo. Con lo cual no pude copiar la prueba de ejecución automática, pero si la ejecución manual (que eran iguales, solamente diferían de que una decía en la primera línea que había sido ejecutada automáticamente por un push).
+Y se quedaba colgado/pensando en la última linea, por mucho tiempo. Afortunadamente al reiniciar la pc volvió a funcionar multipass.
 
 #### Entregable 1. Códigos Fuente Jenkins
 ```groovy
@@ -198,15 +198,14 @@ Se adjunta guía de utilización del job en el formato indicado por el enunciado
 
 #### Entregable 3. Evidencia de las pruebas con resultado exitoso
 
-##### Ejecución CI
+##### Ejecución CI automática desde un push
 
 ```bash
-Started by user Hernán F.B.
-
+Started by GitHub push by hernan-fb
 [Pipeline] Start of Pipeline
 [Pipeline] node
 Running on Jenkins
- in /var/lib/jenkins/workspace/desafio02/nodejs_CI_job@2
+ in /var/lib/jenkins/workspace/desafio02/nodejs_CI_job
 [Pipeline] {
 [Pipeline] stage
 [Pipeline] { (Declarative: Tool Install)
@@ -226,24 +225,34 @@ Running on Jenkins
 Selected Git installation does not exist. Using Default
 The recommended git tool is: NONE
 No credentials specified
-Cloning the remote Git repository
-Cloning repository https://github.com/hernan-fb/testUseForJenkins
- > git init /var/lib/jenkins/workspace/desafio02/nodejs_CI_job@2 # timeout=10
+ > git rev-parse --resolve-git-dir /var/lib/jenkins/workspace/desafio02/nodejs_CI_job/.git # timeout=10
+Fetching changes from the remote Git repository
+ > git config remote.origin.url https://github.com/hernan-fb/testUseForJenkins # timeout=10
 Fetching upstream changes from https://github.com/hernan-fb/testUseForJenkins
  > git --version # timeout=10
  > git --version # 'git version 2.43.0'
  > git fetch --tags --force --progress -- https://github.com/hernan-fb/testUseForJenkins +refs/heads/*:refs/remotes/origin/* # timeout=10
- > git config remote.origin.url https://github.com/hernan-fb/testUseForJenkins # timeout=10
- > git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10
-Avoid second fetch
  > git rev-parse refs/remotes/origin/main^{commit} # timeout=10
-Checking out Revision 0ae49ebed09faf348f6a6f2c6c93f69a617a298b (refs/remotes/origin/main)
+Checking out Revision 441c70acf7180bb0c280cf4ba849a1630c52c183 (refs/remotes/origin/main)
  > git config core.sparsecheckout # timeout=10
- > git checkout -f 0ae49ebed09faf348f6a6f2c6c93f69a617a298b # timeout=10
+ > git checkout -f 441c70acf7180bb0c280cf4ba849a1630c52c183 # timeout=10
  > git branch -a -v --no-abbrev # timeout=10
- > git checkout -b main 0ae49ebed09faf348f6a6f2c6c93f69a617a298b # timeout=10
-Commit message: "test for devopsbootcamp course"
- > git rev-list --no-walk 0ae49ebed09faf348f6a6f2c6c93f69a617a298b # timeout=10
+ > git branch -D main # timeout=10
+ > git checkout -b main 441c70acf7180bb0c280cf4ba849a1630c52c183 # timeout=10
+Commit message: "second commit"
+ > git rev-list --no-walk 5fffb21cdb3bf50ba3479783c53b7d3174291ad1 # timeout=10
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Clean Previous Installations)
+[Pipeline] tool
+[Pipeline] envVarsForTool
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] sh
++ rm -rf node_modules package-lock.json
 [Pipeline] }
 [Pipeline] // withEnv
 [Pipeline] }
@@ -256,21 +265,19 @@ Commit message: "test for devopsbootcamp course"
 [Pipeline] {
 [Pipeline] sh
 + npm install
-(node:25102) ExperimentalWarning: CommonJS module /var/lib/jenkins/tools/jenkins.plugins.nodejs.tools.NodeJSInstallation/NodeJS/lib/node_modules/npm/node_modules/debug/src/node.js is loading ES Module /var/lib/jenkins/tools/jenkins.plugins.nodejs.tools.NodeJSInstallation/NodeJS/lib/node_modules/npm/node_modules/supports-color/index.js using require().
+(node:1578) ExperimentalWarning: CommonJS module /var/lib/jenkins/tools/jenkins.plugins.nodejs.tools.NodeJSInstallation/NodeJS/lib/node_modules/npm/node_modules/debug/src/node.js is loading ES Module /var/lib/jenkins/tools/jenkins.plugins.nodejs.tools.NodeJSInstallation/NodeJS/lib/node_modules/npm/node_modules/supports-color/index.js using require().
 Support for loading ES Module in require() is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated superagent@8.1.2: Please upgrade to v9.0.0+ as we have fixed a public vulnerability with formidable dependency. Note that v9.0.0+ requires Node.js v14.18.0+. See https://github.com/ladjs/superagent/pull/1800 for insight. This project is supported and maintained by the team at Forward Email @ https://forwardemail.net
 
-added 367 packages, and audited 368 packages in 42s
+added 349 packages, and audited 350 packages in 5m
 
-45 packages are looking for funding
+46 packages are looking for funding
   run `npm fund` for details
 
-9 vulnerabilities (3 low, 1 moderate, 5 high)
-
-To address all issues, run:
-  npm audit fix
-
-Run `npm audit` for details.
+found 0 vulnerabilities
 [Pipeline] }
 [Pipeline] // withEnv
 [Pipeline] }
@@ -294,12 +301,12 @@ Run `npm audit` for details.
 
 PASS ./index.test.js
   GET /
-    ✓ responds with hello world message in JSON format (84 ms)
+    ✓ responds with hello world message in JSON format (32 ms)
 
 Test Suites: 1 passed, 1 total
 Tests:       1 passed, 1 total
 Snapshots:   0 total
-Time:        1.078 s
+Time:        0.753 s
 Ran all test suites.
 Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?
 [Pipeline] }
@@ -314,6 +321,10 @@ Force exiting Jest: Have you considered using `--detectOpenHandles` to detect as
 [Pipeline] {
 [Pipeline] sh
 + npm start
+
+> nodejs-helloworld-api@1.0.0 start
+> node index.js
+
 [Pipeline] }
 [Pipeline] // withEnv
 [Pipeline] }
